@@ -13,3 +13,7 @@ Here is the link of PJT memo : https://docs.google.com/presentation/d/1l6uX0eqAQ
 
 # Log
 - 2025-04-17 : Start Project
+- 2025-07-17 : re_Create repo
+	 -  Coding - Create GUI - Simply
+		- create - CLUT Tab
+		- create - Display Tab
