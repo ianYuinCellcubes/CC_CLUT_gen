@@ -1,9 +1,11 @@
 from turtle import width
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import (
     QCheckBox,
+    QDial,
     QDialog,
+    QDoubleSpinBox,
     QHeaderView,
     QLayout,
     QSlider,
@@ -46,8 +48,9 @@ class MainView(QMainWindow):
         self.tCV = Tab_CLUT(self.controller)
 
         wgt_tab = QTabWidget()
-        wgt_tab.addTab(self.tDV, "Display")
         wgt_tab.addTab(self.tCV, "CLUT")
+        wgt_tab.addTab(self.tDV, "Display")
+        
         
         vbox = QVBoxLayout()
         vbox.addWidget(wgt_tab)
@@ -57,6 +60,13 @@ class MainView(QMainWindow):
         widget.setLayout(vbox)
 
         self.setCentralWidget(widget)
+
+    def closeEvent(self, event: QCloseEvent, /) -> None:
+        if self.tCV.dialog is not None:
+            self.tCV.dialog.close()
+        if self.tCV.rslt is not None:
+            self.tCV.rslt.close()
+        return super().closeEvent(event)
 
 
 class Tab_Dispaly(QWidget):
@@ -214,7 +224,8 @@ class Tab_CLUT(QWidget):
         super().__init__()
         self.controller = controller
         self.initUI()
-        self._dialog = None
+        self.dialog = Clut_detail_dialog(self.controller)
+        self.rslt = Clut_result_dialog(self.controller)
 
     def initUI(self):
         _vbox = QVBoxLayout()
@@ -225,15 +236,15 @@ class Tab_CLUT(QWidget):
 
     def c_Ctl_box(self):
         _lbl_CLUT_title = QLabel("CLUT Curve")
-        _btn_c_save = QPushButton("Save")
-        _btn_c_save.clicked.connect(self.test)
+        _btn_c_print = QPushButton("Print")
+        _btn_c_print.clicked.connect(self.print_CLUT)
         _btn_c_reset = QPushButton("Reset")
         _btn_c_detail = QPushButton("Detail")
         _btn_c_detail.clicked.connect(self.pop_detail)
         
         _hbox_cc_0 = QHBoxLayout()
         _hbox_cc_0.addWidget(_lbl_CLUT_title)
-        _hbox_cc_0.addWidget(_btn_c_save)
+        _hbox_cc_0.addWidget(_btn_c_print)
         _hbox_cc_0.addWidget(_btn_c_reset)
         _hbox_cc_0.addWidget(_btn_c_detail)
 
@@ -250,17 +261,17 @@ class Tab_CLUT(QWidget):
         self.c_plot.axes.set_ylim(0.0, 1.0)
         return self.c_plot
 
-    def test(self):
-        self.c_plot.axes.clear()
-        a = self.c_plot.axes.plot(self.data1, linestyle='dashed')
-        self.c_plot.axes.plot([1,1,1,1,1,1,1,11,1,1,1,1], linestyle='dashed')
-        self.c_plot.draw()
-        print(self.c_plot.fig.get_axes())
+    def print_CLUT(self):
+        if self.rslt is None:
+            self.rslt = Clut_result_dialog(self.controller)
+        self.controller.pop_result()
+        self.rslt.show()
     
     def pop_detail(self):
-        if self._dialog is None:
-            self._dialog = Clut_detail_dialog(self.controller)
-        self._dialog.show()
+        if self.dialog is None:
+            self.dialog = Clut_detail_dialog(self.controller)
+        self.dialog.show()
+        self.controller.pop_detail()
 
 class Clut_detail_dialog(QDialog):
     def __init__(self, controller):
@@ -270,8 +281,8 @@ class Clut_detail_dialog(QDialog):
     
     def initUI(self):
         _hbox = QHBoxLayout()
-        _hbox.addWidget(self.cdd_clut_box())
-        _hbox.addWidget(self.cdd_gc_box())
+        _hbox.addWidget(self.cdd_clut_box(), 1)
+        _hbox.addWidget(self.cdd_gc_box(), 1)
 
         self.setLayout(_hbox)
 
@@ -332,15 +343,118 @@ class Clut_detail_dialog(QDialog):
         return _wgt
 
     def on_change_sldr_bit(self, value):
-        pass
-            
+        self.controller.bit_change(value)
 
     def cdd_gc_box(self):
-        
-        _wgt = QWidget()
-        return _wgt
-        
+        _lbl_cdd_gc_title = QLabel("Gamma(γ) Correction")
+        self.dsb_cdd_gc = QDoubleSpinBox()
+        self.dsb_cdd_gc.setRange(0.1, 10.0)
+        self.dsb_cdd_gc.setSingleStep(0.1)
+        self.dsb_cdd_gc.valueChanged.connect(self.on_change_gamma)
+        _btn_cdd_gc_linear = QPushButton("Linear")
+        _btn_cdd_gc_linear.clicked.connect(self.on_gamma_linear)
 
+        _hbox_cdd_gc_0 = QHBoxLayout()
+        _hbox_cdd_gc_0.addWidget(self.dsb_cdd_gc, 2)
+        _hbox_cdd_gc_0.addWidget(_btn_cdd_gc_linear, 1)
+
+        _wgt_h_cdd_gc_0 = QWidget()
+        _wgt_h_cdd_gc_0.setLayout(_hbox_cdd_gc_0)
+        
+        _vbox_cdd_gc_0 = QVBoxLayout()
+        _vbox_cdd_gc_0.addWidget(_lbl_cdd_gc_title)
+        _vbox_cdd_gc_0.addWidget(_wgt_h_cdd_gc_0)
+        _vbox_cdd_gc_0.addWidget(self.g_plot_box())
+
+        _wgt = QWidget()
+        _wgt.setLayout(_vbox_cdd_gc_0)
+        return _wgt
+
+    def g_plot_box(self):
+        self.g_plot = MpiCanvas(self)
+        data = [i for i in range(25)]
+        self.data1 = [33,0,33,0,30,39,39,39,39,399]
+        self.tP = self.g_plot.axes.plot(data, linestyle='dashed')[0]
+        self.g_plot.axes.plot(self.data1, linestyle='dashed')
+        self.g_plot.axes.set_xlim(0, 255)
+        self.g_plot.axes.set_ylim(0.0, 1.0)
+        return self.g_plot
+        
+    def update_gamma(self, value):
+        self.dsb_cdd_gc.setValue(value)
+    
+    def on_gamma_linear(self):
+        self.dsb_cdd_gc.setValue(1.0)
+    def on_change_gamma(self, value):
+        self.controller.gamma_change(value)
+
+class Clut_result_dialog(QDialog):
+    def __init__(self, controller):
+        super().__init__()
+        self.controller = controller
+        self.initUI()
+    
+    def initUI(self):
+        _hbox = QHBoxLayout()
+        _hbox.addWidget(self.crd_clut_box(), 1)
+        _hbox.addWidget(self.crd_lbl_box(), 1)
+
+        self.setLayout(_hbox)
+
+    def crd_clut_box(self):
+        _lbl_crd_title = QLabel("CLUT Result")
+        self.lbl_file_root = QLabel("\\")
+        _btn_set_file_root = QPushButton()
+        _btn_set_file_root.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.FolderOpen))
+        _btn_set_file_root.clicked.connect(self.on_select_root)
+        
+        _hbox_crd_file_0 = QHBoxLayout()
+        _hbox_crd_file_0.addWidget(self.lbl_file_root, 3)
+        _hbox_crd_file_0.addWidget(_btn_set_file_root, 1)
+
+        _wgt_h_crd_f_0 = QWidget()
+        _wgt_h_crd_f_0.setLayout(_hbox_crd_file_0)
+
+        self.crd_plot = MpiCanvas(self)
+        xData = [i for i in range(0, 256)]
+        rData = [i for i in range(0, 256)]
+        self.crd_plot.axes.plot(xData, rData, c='r')
+        self.crd_plot.axes.plot(xData, rData, c='g')
+        self.crd_plot.axes.plot(xData, rData, c='b')
+
+        _vbox_crd_0 = QVBoxLayout()
+        _vbox_crd_0.addWidget(_lbl_crd_title)
+        _vbox_crd_0.addWidget(_wgt_h_crd_f_0)
+        _vbox_crd_0.addWidget(self.crd_plot)
+
+        _wgt = QWidget()
+        _wgt.setLayout(_vbox_crd_0)
+        return _wgt
+
+    def crd_lbl_box(self):
+        _lbl_gamma_title = QLabel("Gamma : ")
+        self.lbl_gamma_value = QLabel("1.0")
+        _hbox_crd_lbl_0 = QHBoxLayout()
+        _hbox_crd_lbl_0.addWidget(_lbl_gamma_title)
+        _hbox_crd_lbl_0.addWidget(self.lbl_gamma_value)
+        _wgt_h_crd_l_0 = QWidget()
+        _wgt_h_crd_l_0.setLayout(_hbox_crd_lbl_0)
+
+        _btn_save_file = QPushButton("SAVE")
+        _btn_save_file.clicked.connect(self.on_save_file)
+        _vbox_crd_lbl_0 = QVBoxLayout()
+        _vbox_crd_lbl_0.addWidget(_wgt_h_crd_l_0, 1)
+        _vbox_crd_lbl_0.addWidget(_btn_save_file, 2)
+
+        _wgt = QWidget()
+        _wgt.setLayout(_vbox_crd_lbl_0)
+        return _wgt
+    def on_select_root(self):
+        file_root = QFileDialog.getExistingDirectory(self, self.tr("Select the Folder"), "./", QFileDialog.Option.ShowDirsOnly)
+        self.controller.set_file_root(file_root)
+
+    def on_save_file(self):
+        self.controller.make_bin_file()
 
 class MpiCanvas(FigureCanvasQTAgg):
   def __init__(self, parent=None, figsize =(5,5), dpi=100):

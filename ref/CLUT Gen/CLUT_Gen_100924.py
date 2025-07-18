@@ -173,6 +173,8 @@ def read_Data():
     #file = str(cPath) + "\\Data\\Measured_Data2.csv"   
     dataList = load_data (file)   # \\ for literal '\' in the string !!!!!!!
     dataN=len(dataList) # of data in csv file
+    print("###")
+    print(dataN)
     #print(len(dataList))  
     for i in range(0, dataN):
         grayLevel.append(float(dataList[i][0]))
@@ -198,6 +200,9 @@ def spline():
     splineArray = [[]*1 for i in range(clutN)]
     temp=[]; temp1=[]; temp2=[]
     cs = CubicSpline(grayLevel, blueData)
+    print("***")
+    print(cs(1))
+    print("***")
     cs1 = CubicSpline(grayLevel, greenData)
     cs2 = CubicSpline(grayLevel, redData)
     xSpacing=256/(clutN)    # 2 to the n-th power
@@ -205,6 +210,7 @@ def spline():
     xs = np.arange(0,256, xSpacing)
     for i in range (0,clutN):
         temp.append(cs(xs[i]).item())
+        # print("***"+ str(cs(xs[i]).item()))
         temp1.append(cs1(xs[i]).item())
         temp2.append(cs2(xs[i]).item())
     splineArray = appendList(splineArray, temp)     #  b adds list as additiona 'column' each time appendList is executed
@@ -223,6 +229,7 @@ def spline():
     dataFig.canvas.draw()
     print("L: ", len(temp))
     print (splineArray)
+    print("SL: ", len(splineArray))
     #print(temp)
     print("Red Spline")
     
@@ -420,7 +427,7 @@ def generate_CLUT():
         for k in range(0, gammaN):
             searchVal=y[k]
             difference_array = np.absolute(slmTruncated-searchVal) # form absolute difference array to find min difference
-            index = difference_array.argmin()                       # min difference == searched index
+            index = difference_array.argmin()                       # min difference == searched index => 결국 정수 찾는거 아닌가? celi 왜 안쓰셧지?
             nIndex=index.item() + minIndex
             tempList.append(nIndex) # clut index array
             tN.append(nIndex/clutN) # normalized CLUT data to be plotted
