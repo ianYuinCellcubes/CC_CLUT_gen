@@ -1,5 +1,7 @@
 # from fontTools.cffLib.specializer import stringToProgram
 
+from asyncio.windows_events import NULL
+from turtle import pos
 from source.mainModel import DataModel
 from source.mainView import MainView
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot
@@ -9,6 +11,7 @@ from scipy.interpolate import CubicSpline
 import numpy as np
 import csv
 import os
+import struct 
 
 class MainController():
     def __init__(self):
@@ -28,6 +31,8 @@ class MainController():
     def gamma_change(self, data):
         self.model.set_gamma(data)
         self.gamma_update()
+        self.caluclate_base_data()
+        self.data_calculate()
 
     def gamma_update(self):
         gamma = self.model.get_gamma()
@@ -44,10 +49,11 @@ class MainController():
     
     def load_file(self, fName):
         myData =[]
-        f = open (fName, 'r')    # 'r' for read
+        f = open (fName[0], 'r')    # 'r' for read
         csvReader = csv.reader(f, delimiter=',')
         for row in csvReader:
             myData.append(row)
+        print(myData)
         self.model.set_file_data(myData)
         # dataLen = len(myData)
         # load_data = []
@@ -55,12 +61,20 @@ class MainController():
         #     load_data.append([myData[i][0], myData[i][1]. myData[i][2], myData[i][3]])
         # self.model.set_file_data(load_data)
 
+    def caluclate_base_data(self):
+        # calculate the Gamma base Data table
+        gamma_value = self.model.get_gamma()
+        x = np.linspace(0, 255, 256)
+        xN = x/255
+        y= xN**gamma_value
+        self.model.set_base_data(y)
+
     def data_calculate(self):
         bit_value = self.model.get_bit()
-        gamma_value = self.model.get_gamma()
-        splineArray = [[]*1 for i in range(bit_value)]
-        xSpacing = 256/bit_value
-        glvArray = [j for j in range(0, 256)]
+        clutN = pow(2, bit_value)
+        base_data = self.model.get_base_data()
+        xSpacing = 256/clutN
+        glvArray = self.model.get_glv_file_data()
         rArray = self.model.get_r_file_data()
         gArray = self.model.get_g_file_data()
         bArray = self.model.get_b_file_data()
@@ -68,10 +82,45 @@ class MainController():
         cs_r = CubicSpline(glvArray, rArray)
         cs_g = CubicSpline(glvArray, gArray)
         cs_b = CubicSpline(glvArray, bArray)
-        tmp = []
-        for i in range(0, bit_value):
-            tmp.append
-        
+        tmp = [[],[],[]]
+        rslt_clut = []
+        rslt_plot = []
+        for i in range(0, clutN):
+            tmp[0].append(cs_r(xs[i]).item())
+            tmp[1].append(cs_g(xs[i]).item())
+            tmp[2].append(cs_b(xs[i]).item())
+        for c in range(0, 3):
+            minIndex=tmp[c].index(min(tmp[c]))
+            tempList = []
+            tN = [] #normalized List for plot    
+            slmTruncated=tmp[c]
+            for k in range(0, 256):
+                searchVal=base_data[k]
+                difference_array = np.absolute(slmTruncated-searchVal) # form absolute difference array to find min difference
+                index = difference_array.argmin()                       # min difference == searched index 
+                print(index)
+                nIndex=index.item() + minIndex
+                tempList.append(nIndex) # clut index array
+                tN.append(nIndex/clutN) # normalized CLUT data to be plotted    
+            # print(len(tempList))
+            rslt_clut.append(tempList) # CLUT data to be stored
+            rslt_plot.append(tN)
+        self.model.set_rslt_data(rslt_clut)
+        self.drawPlot(self.view.tCV.rslt.crd_plot, rslt_plot)
+        self.drawPlot(self.view.tCV.c_plot, rslt_plot)
+
+    def drawPlot(self, posObject, data):
+        posObject.axes.clear()
+        for i in range(0, 3):
+            if i == 0:
+                color = 'r'
+            elif i == 1:
+                color = 'g'
+            elif i == 2:
+                color = 'b'
+            posObject.axes.plot(data[i], color)
+        posObject.draw()
+
     def pop_result(self):
         gamma = self.model.get_gamma()
         self.view.tCV.rslt.lbl_gamma_value.setText(str(gamma))
@@ -92,17 +141,21 @@ class MainController():
         self.view.tCV.rslt.lbl_file_root.setText(self.model.get_save_root())
 
     def make_bin_file(self):
-        rslt_bit = self.model.get_bit()
-        rslt_gamma = self.model.get_gamma()
+        rslt_bit = str(self.model.get_bit())
+        rslt_gamma = str(self.model.get_gamma()).replace('.','_')
         final_data = self.model.get_rslt_data()
-        rslt_data = bytearray()
+        print(final_data)
+        rslt_data = 1
         for i in range(0, 3):
-            for j in range(len(final_data)):
-                rslt_data.append(int(final_data[j][i]))
+            for j in range(0, 256):
+                if rslt_data == 1:
+                    rslt_data = struct.pack('>h', final_data[i][j])
+                else:
+                    rslt_data += struct.pack('>h', final_data[i][j])
         rslt_save_root = self.model.get_save_root()
         rslt_cell = self.model.get_cell_type()
-        rslt_datetime = datetime.now().strftime('%y%m%d%H%M%S')
-        rslt_file_name = rslt_datetime + rslt_cell + "G"+rslt_gamma + "b" + rslt_bit + ".bin"
-        
+        rslt_datetime = datetime.datetime.now().strftime('%y%m%d%H%M%S')
+        rslt_file_name = rslt_datetime +"_" + rslt_cell + "_G" + rslt_gamma + "_b" + rslt_bit + ".bin"
+        print(rslt_data)
         with open(os.path.join(rslt_save_root, rslt_file_name), 'wb') as f:
-            f.write(rslt_data)
+            f.write(bytes(rslt_data))

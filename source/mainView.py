@@ -290,6 +290,7 @@ class Clut_detail_dialog(QDialog):
         _lbl_cdd_title = QLabel("Color Look-UP Table")
         _btn_load_clut = QPushButton()
         _btn_load_clut.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.FolderOpen))
+        _btn_load_clut.clicked.connect(self.on_Load_csv)
         _btn_download_clut = QPushButton()
         _btn_download_clut.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave))
         _hbox_cdd_cb_0 = QHBoxLayout()
@@ -306,9 +307,9 @@ class Clut_detail_dialog(QDialog):
         _lbl_cdd_sub_title = QLabel("CLUT Depth")
         _lbl_cdd_10bit = QLabel("10 bit")
         _sldr_cdd_bit = QSlider(Qt.Horizontal)
-        _sldr_cdd_bit.setRange(0, 1)
-        _sldr_cdd_bit.setSingleStep(1)
-        _sldr_cdd_bit.setSliderPosition(0)
+        _sldr_cdd_bit.setRange(10, 12)
+        _sldr_cdd_bit.setSingleStep(2)
+        _sldr_cdd_bit.setSliderPosition(10)
         _sldr_cdd_bit.valueChanged.connect(self.on_change_sldr_bit)
 
         _lbl_cdd_12bit = QLabel("12 bit")
@@ -341,6 +342,9 @@ class Clut_detail_dialog(QDialog):
         _wgt = QWidget()
         _wgt.setLayout(_vbox_cdd_cb_0)
         return _wgt
+    def on_Load_csv(self):
+        file_csv = QFileDialog.getOpenFileName(self, self.tr("Load the CSV"), "./", self.tr("Data Files (*.csv)"))
+        self.controller.load_file(file_csv)
 
     def on_change_sldr_bit(self, value):
         self.controller.bit_change(value)

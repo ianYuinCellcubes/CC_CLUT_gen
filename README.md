@@ -33,3 +33,6 @@ Here is the link of PJT memo : https://docs.google.com/presentation/d/1l6uX0eqAQ
 	 -  Coding - Create GUI - Simply
 		- create - CLUT Tab
 		- create - Display Tab
+- 2025-07-19 : Fix Error
+	- Coding - Create GUI & Add Func
+		- Fixed - func. make bin file => Done
