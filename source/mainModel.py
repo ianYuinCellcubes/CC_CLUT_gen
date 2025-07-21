@@ -5,22 +5,27 @@ class DataModel:
         base_table = []
         gamma_value = 1.0
         bit_value = 10
-        glv_file_data = []
-        r_file_data = []
-        g_file_data = []
-        b_file_data = []
+        glv_file_data = [0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240,256]
+        r_file_data = [0,0.001886792,0.007075472,0.016509434,0.033018868,0.066037736,0.122641509,0.200471698,0.311320755,0.433962264,0.556603774,0.660377358,0.754716981,0.83490566,0.900943396,0.955188679,1]
+        g_file_data = [0,0.002857143,0.009795918,0.020408163,0.040816327,0.07755102,0.146938776,0.236734694,0.355102041,0.481632653,0.604081633,0.706122449,0.787755102,0.857142857,0.910204082,0.959183673,1]
+        b_file_data = [0,0.002857143,0.011428571,0.026190476,0.052380952,0.1,0.176190476,0.280952381,0.40952381,0.547619048,0.671428571,0.761904762,0.838095238,0.895238095,0.938095238,0.971428571,1]
+        load_root = "\\"
         save_root = "\\"
         #rslt data : [R_array, G_array, B_array].  must be size of R_array,G_array,B_array is Same
         rslt_data = [[0,1,2,3],[1,11,1,1],[2,2,2,2]]
         cell_type = "TN"
+        cell_gap = 1.05
         def __init__(self) -> None:
             pass
     def __init__(self):
         self.__data = 0
         self.__port_list = []
         self.__root_folder = './'
-        
-        self.__step = 1
+
+    def get_cell_gap(self):
+        return self.CLUT.cell_gap
+    def set_cell_gap(self, data):
+        self.CLUT.cell_gap = data
 
     def get_gamma(self):
         return self.CLUT.gamma_value
@@ -32,13 +37,35 @@ class DataModel:
     def set_bit(self, value):
         self.CLUT.bit_value = value
 
+    def reset_data(self):
+        self.CLUT.glv_file_data = [0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240,256]
+        self.CLUT.r_file_data = [0,0.001886792,0.007075472,0.016509434,0.033018868,0.066037736,0.122641509,0.200471698,0.311320755,0.433962264,0.556603774,0.660377358,0.754716981,0.83490566,0.900943396,0.955188679,1]
+        self.CLUT.g_file_data = [0,0.002857143,0.009795918,0.020408163,0.040816327,0.07755102,0.146938776,0.236734694,0.355102041,0.481632653,0.604081633,0.706122449,0.787755102,0.857142857,0.910204082,0.959183673,1]
+        self.CLUT.b_file_data = [0,0.002857143,0.011428571,0.026190476,0.052380952,0.1,0.176190476,0.280952381,0.40952381,0.547619048,0.671428571,0.761904762,0.838095238,0.895238095,0.938095238,0.971428571,1]
+
     def set_file_data(self, data):
         sizeData = len(data)
+        self.CLUT.glv_file_data = []
+        self.CLUT.r_file_data = []
+        self.CLUT.g_file_data = []
+        self.CLUT.b_file_data = []
         for i in range(sizeData):
             self.CLUT.glv_file_data.append(data[i][0])
             self.CLUT.r_file_data.append(data[i][1])
             self.CLUT.g_file_data.append(data[i][2])
             self.CLUT.b_file_data.append(data[i][3])
+
+    def set_index_data(self, col, row, data):
+        table = []
+        if col == 0:
+            table = self.CLUT.r_file_data
+        elif col == 1:
+            table = self.CLUT.g_file_data
+        elif col == 2:
+            table = self.CLUT.b_file_data
+        else:
+            pass
+        table[row] = data
 
     def get_glv_file_data(self):
         return self.CLUT.glv_file_data
@@ -49,6 +76,12 @@ class DataModel:
     def get_b_file_data(self):
         return self.CLUT.b_file_data
     
+    def set_load_root(self, root):
+        self.CLUT.load_root = root
+    def get_load_root(self):
+        return self.CLUT.load_root
+
+
     def set_save_root(self, root):
         self.CLUT.save_root = root
     def get_save_root(self):
@@ -65,37 +98,7 @@ class DataModel:
     def set_cell_type(self, type):
         self.CLUT.cell_type = type
 
-    def set_base_data(self, dList):
+    def set_base_gamma_data(self, dList):
         self.CLUT.base_table = dList
-    def get_base_data(self):
+    def get_base_gamma_data(self):
         return self.CLUT.base_table
-
-    # def reset_plot_c(self):
-    #     self.__clt = CLUT_data
-
-    # def set_data(self, data):
-    #     self.__data = data
-    # def get_data(self):
-    #     return self.__data
-    # def set_port_list(self, data):
-    #     self.__port_list = data
-    # def get_port_list(self):
-    #     return self.__port_list
-
-    # def set_clut_R(self, clist):
-    #     for i in range(len(clist)):
-    #         self.__clt.cB[i] = clist[i]
-    # def get_clut_R(self):
-    #     return self.__clt.cB
-
-    # def set_clut_G(self, clist):
-    #     for i in range(len(clist)):
-    #         self.__clt.cG[i] = clist[i]
-    # def get_clut_G(self):
-    #     return self.__clt.cG
-
-    # def set_clut_B(self, clist):
-    #     for i in range(len(clist)):
-    #         self.__clt.cB[i] = clist[i]
-    # def get_clut_B(self):
-    #     return self.__clt.cB

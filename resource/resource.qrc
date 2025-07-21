@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>icon/logo.ico</file>
         <file>pattern/PDI_Target.jpg</file>
+        <file>font/Sansation-Bold.ttf</file>
+        <file>font/Sansation-Regular.ttf</file>
     </qresource>
 </RCC>

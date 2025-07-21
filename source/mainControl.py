@@ -23,20 +23,46 @@ class MainController():
         self.view.show()
 
     def init(self):
-        pass
-    
+        self.load_data()
+        self.caluclate_gamma_base_data()
+        self.data_calculate()
+        
+
+    def reset_data(self):
+        root = self.model.get_load_root()
+        if root == "\\":
+            self.model.reset_data()
+            self.load_data()
+            self.data_calculate()
+        else:
+            self.load_file(root)
+
+    def load_data(self):
+        dList = [[],[],[],[]]
+        dList[0] = self.model.get_glv_file_data()
+        dList[1] = self.model.get_r_file_data()
+        dList[2] = self.model.get_g_file_data()
+        dList[3] = self.model.get_b_file_data()
+        self.view.tCV.dialog.update_table(dList)
+
+    def change_base_data(self, col, row, data):
+        self.model.set_index_data(col, row, float(data))
+        # self.caluclate_base_data()
+        self.data_calculate()
+
     def pop_detail(self):
         self.gamma_update()
 
     def gamma_change(self, data):
         self.model.set_gamma(data)
         self.gamma_update()
-        self.caluclate_base_data()
+        self.caluclate_gamma_base_data()
         self.data_calculate()
 
     def gamma_update(self):
         gamma = self.model.get_gamma()
         self.view.tCV.dialog.update_gamma(gamma)
+        self.view.tCV.rslt.update_gamma(gamma)
         gX = np.linspace(0, 255, 256)
         gY = pow((gX/255), gamma)
         self.view.tCV.dialog.g_plot.axes.clear()
@@ -45,34 +71,34 @@ class MainController():
 
     def bit_change(self, value):
         self.model.set_bit(value)
+        self.view.tCV.rslt.bit_value.setText("{} bit".format(value))
         self.data_calculate()
     
     def load_file(self, fName):
         myData =[]
-        f = open (fName[0], 'r')    # 'r' for read
+        self.model.set_load_root(fName)
+        f = open (fName, 'r')    # 'r' for read
         csvReader = csv.reader(f, delimiter=',')
         for row in csvReader:
             myData.append(row)
-        print(myData)
+        # print(myData)
         self.model.set_file_data(myData)
-        # dataLen = len(myData)
-        # load_data = []
-        # for i in range(0, dataLen):
-        #     load_data.append([myData[i][0], myData[i][1]. myData[i][2], myData[i][3]])
-        # self.model.set_file_data(load_data)
+        self.load_data()
+        self.data_calculate()
 
-    def caluclate_base_data(self):
+        
+    def caluclate_gamma_base_data(self):
         # calculate the Gamma base Data table
         gamma_value = self.model.get_gamma()
         x = np.linspace(0, 255, 256)
         xN = x/255
         y= xN**gamma_value
-        self.model.set_base_data(y)
+        self.model.set_base_gamma_data(y)
 
     def data_calculate(self):
         bit_value = self.model.get_bit()
         clutN = pow(2, bit_value)
-        base_data = self.model.get_base_data()
+        base_gamma_data = self.model.get_base_gamma_data()
         xSpacing = 256/clutN
         glvArray = self.model.get_glv_file_data()
         rArray = self.model.get_r_file_data()
@@ -95,7 +121,7 @@ class MainController():
             tN = [] #normalized List for plot    
             slmTruncated=tmp[c]
             for k in range(0, 256):
-                searchVal=base_data[k]
+                searchVal=base_gamma_data[k]
                 difference_array = np.absolute(slmTruncated-searchVal) # form absolute difference array to find min difference
                 index = difference_array.argmin()                       # min difference == searched index 
                 print(index)
@@ -108,6 +134,11 @@ class MainController():
         self.model.set_rslt_data(rslt_clut)
         self.drawPlot(self.view.tCV.rslt.crd_plot, rslt_plot)
         self.drawPlot(self.view.tCV.c_plot, rslt_plot)
+        self.update_bin_table()
+    
+    def update_bin_table(self):
+        data = self.model.get_rslt_data()
+        self.view.tCV.rslt.update_bin_table(data)
 
     def drawPlot(self, posObject, data):
         posObject.axes.clear()
@@ -126,15 +157,10 @@ class MainController():
         self.view.tCV.rslt.lbl_gamma_value.setText(str(gamma))
         save_root = self.model.get_save_root()
         self.view.tCV.rslt.lbl_file_root.setText(save_root)
-        gX = np.linspace(0, 255, 256)
-        gY = pow((gX/255), gamma)
-        gY1 = pow((gX/255), gamma+1)
-        gY2 = pow((gX/255), gamma-0.5)
-        self.view.tCV.rslt.crd_plot.axes.clear()
-        self.view.tCV.rslt.crd_plot.axes.plot(gY, c='r')
-        self.view.tCV.rslt.crd_plot.axes.plot(gY1, c='g')
-        self.view.tCV.rslt.crd_plot.axes.plot(gY2, c='b')
-        self.view.tCV.rslt.crd_plot.draw()
+        bit = self.model.get_bit()
+        self.view.tCV.rslt.bit_value.setText("{} bit".format(bit))
+        self.load_data()
+        self.data_calculate()
     
     def set_file_root(self, root):
         self.model.set_save_root(root)
@@ -154,8 +180,27 @@ class MainController():
                     rslt_data += struct.pack('>h', final_data[i][j])
         rslt_save_root = self.model.get_save_root()
         rslt_cell = self.model.get_cell_type()
+        rslt_gap = str(self.model.get_cell_gap()).replace(".", "_")
         rslt_datetime = datetime.datetime.now().strftime('%y%m%d%H%M%S')
-        rslt_file_name = rslt_datetime +"_" + rslt_cell + "_G" + rslt_gamma + "_b" + rslt_bit + ".bin"
+        rslt_file_name = rslt_datetime +"_" + rslt_cell + rslt_gap + "_G" + rslt_gamma + "_bit" + rslt_bit + ".bin"
         print(rslt_data)
         with open(os.path.join(rslt_save_root, rslt_file_name), 'wb') as f:
             f.write(bytes(rslt_data))
+
+    def make_csv_file(self, fName):
+        glv_data = self.model.get_glv_file_data()
+        r_data = self.model.get_r_file_data()
+        g_data = self.model.get_g_file_data()
+        b_data = self.model.get_b_file_data()
+        row_size = len(glv_data)
+        f = open(fName, 'w', newline='')
+        writer = csv.writer(f)
+        for i in range(row_size):
+            writer.writerow([glv_data[i], r_data[i], g_data[i], b_data[i]])        
+        f.close()
+
+    def set_cell_type(self, cType):
+        self.model.set_cell_type(cType)
+    
+    def set_cell_gap(self, cGap):
+        self.model.set_cell_gap(cGap)

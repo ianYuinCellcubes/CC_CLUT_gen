@@ -16,14 +16,15 @@ import sys
 import logging
 from pathlib import Path
 from typing import NoReturn
+from PIL.Image import Palette
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QFontDatabase, QFont
 
 # Add parent directory to Python path
 ROOT_DIR = Path(__file__).parent.parent
 sys.path.append(str(ROOT_DIR))
-
+import source.rcc
 from source.mainControl import MainController
-
 def setup_logging() -> None:
     """Configure basic logging for the application."""
     logging.basicConfig(
@@ -44,6 +45,12 @@ def app() -> NoReturn:
         logger.info("Starting CLUT")
         
         app = QApplication(sys.argv)
+        fontDB = QFontDatabase()
+        fontDB.addApplicationFont(':/font/Sansation-Regular.ttf')
+        app.setFont(QFont('Sansation-Regular'))
+        with open(".\\source\\themes.qss", "r") as f:
+            _style = f.read()
+            app.setStyleSheet(_style)
         controller = MainController()
         controller.show_main_view()
         sys.exit(app.exec_())

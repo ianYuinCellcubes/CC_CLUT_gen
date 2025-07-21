@@ -1,7 +1,7 @@
-from turtle import width
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon, QCloseEvent
+from PySide6.QtCore import QEvent, Qt, QSize
+from PySide6.QtGui import QIcon, QCloseEvent, QKeyEvent
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QCheckBox,
     QDial,
     QDialog,
@@ -31,8 +31,9 @@ from PySide6.QtWidgets import (
 import matplotlib
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
-
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+import source.rcc
+
 
 class MainView(QMainWindow):
     def __init__(self, controller):
@@ -42,8 +43,8 @@ class MainView(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('CLUT Get')
-        # self.setWindowIcon(QIcon('../../resource/logo.ico'))
-        self.setGeometry(200, 200, 400, 300)
+        self.setWindowIcon(QIcon(":/icon/logo.ico"))
+        self.setGeometry(200, 200, 500, 500)
         self.tDV = Tab_Dispaly(self.controller)
         self.tCV = Tab_CLUT(self.controller)
 
@@ -79,11 +80,11 @@ class Tab_Dispaly(QWidget):
         _vbox = QVBoxLayout()
         _vbox.addWidget(self.dPreview_box())
         _vbox.addWidget(self.rgb_streaming_box())
-
         self.setLayout(_vbox)
 
     def dPreview_box(self):
         _lbl_display_preview = QLabel("Display Preview")
+        _lbl_display_preview.setObjectName("tilte")
         self.cb_display = QComboBox()
 
         _hbox_dP_0 = QHBoxLayout()
@@ -229,26 +230,29 @@ class Tab_CLUT(QWidget):
 
     def initUI(self):
         _vbox = QVBoxLayout()
-        _vbox.addWidget(self.c_Ctl_box())
-        _vbox.addWidget(self.c_plot_box())
+        _vbox.addWidget(self.c_Ctl_box(), 1)
+        _vbox.addWidget(self.c_plot_box(), 10)
 
         self.setLayout(_vbox)
 
     def c_Ctl_box(self):
         _lbl_CLUT_title = QLabel("CLUT Curve")
+        _lbl_CLUT_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        _lbl_CLUT_title.setObjectName("titleH1")
         _btn_c_print = QPushButton("Print")
         _btn_c_print.clicked.connect(self.print_CLUT)
-        _btn_c_reset = QPushButton("Reset")
+        # _btn_c_reset = QPushButton("Reset")
         _btn_c_detail = QPushButton("Detail")
         _btn_c_detail.clicked.connect(self.pop_detail)
         
         _hbox_cc_0 = QHBoxLayout()
         _hbox_cc_0.addWidget(_lbl_CLUT_title)
         _hbox_cc_0.addWidget(_btn_c_print)
-        _hbox_cc_0.addWidget(_btn_c_reset)
+        # _hbox_cc_0.addWidget(_btn_c_reset)
         _hbox_cc_0.addWidget(_btn_c_detail)
 
         _wgt = QWidget()
+        _wgt.setObjectName("case")
         _wgt.setLayout(_hbox_cc_0)
         return _wgt
     def c_plot_box(self):
@@ -285,17 +289,26 @@ class Clut_detail_dialog(QDialog):
         _hbox.addWidget(self.cdd_gc_box(), 1)
 
         self.setLayout(_hbox)
+        self.setWindowTitle("CLUT Detail")
+        self.setWindowIcon(QIcon(":/icon/logo.ico"))
 
     def cdd_clut_box(self):
         _lbl_cdd_title = QLabel("Color Look-UP Table")
+        _lbl_cdd_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        _lbl_cdd_title.setObjectName("titleBox")
         _btn_load_clut = QPushButton()
         _btn_load_clut.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.FolderOpen))
         _btn_load_clut.clicked.connect(self.on_Load_csv)
+        _btn_default_clut = QPushButton()
+        _btn_default_clut.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.ViewRefresh))
+        _btn_default_clut.clicked.connect(self.on_default_csv)
         _btn_download_clut = QPushButton()
         _btn_download_clut.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave))
+        _btn_download_clut.clicked.connect(self.on_save_csv)
         _hbox_cdd_cb_0 = QHBoxLayout()
         _hbox_cdd_cb_0.addWidget(_lbl_cdd_title, 3)
         _hbox_cdd_cb_0.addWidget(_btn_load_clut, 1)
+        _hbox_cdd_cb_0.addWidget(_btn_default_clut, 1)
         _hbox_cdd_cb_0.addWidget(_btn_download_clut, 1)
         _wgt_h_cdd_cb_0 = QWidget()
         _wgt_h_cdd_cb_0.setLayout(_hbox_cdd_cb_0)
@@ -305,14 +318,20 @@ class Clut_detail_dialog(QDialog):
         _h_line.setFrameShadow(QFrame.Sunken)
 
         _lbl_cdd_sub_title = QLabel("CLUT Depth")
+        _lbl_cdd_sub_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        _lbl_cdd_sub_title.setObjectName("titleH2")
         _lbl_cdd_10bit = QLabel("10 bit")
-        _sldr_cdd_bit = QSlider(Qt.Horizontal)
-        _sldr_cdd_bit.setRange(10, 12)
+        _lbl_cdd_10bit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        _sldr_cdd_bit = QSlider(Qt.Horizontal)  
+        _sldr_cdd_bit.setRange(0, 1)
         _sldr_cdd_bit.setSingleStep(2)
-        _sldr_cdd_bit.setSliderPosition(10)
+        _sldr_cdd_bit.setPageStep(2)
+        _sldr_cdd_bit.setSliderPosition(0)
         _sldr_cdd_bit.valueChanged.connect(self.on_change_sldr_bit)
 
         _lbl_cdd_12bit = QLabel("12 bit")
+        _lbl_cdd_12bit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         _hbox_cdd_cb_1 = QHBoxLayout()
         _hbox_cdd_cb_1.addWidget(_lbl_cdd_sub_title, 2)
         _hbox_cdd_cb_1.addWidget(_lbl_cdd_10bit, 1)
@@ -332,6 +351,7 @@ class Clut_detail_dialog(QDialog):
             for row in range(256):
                 item = QTableWidgetItem(str(0))
                 self.clut_table.setItem(row, col, item)
+        self.clut_table.itemChanged.connect(self.on_table_change)
 
         _vbox_cdd_cb_0 = QVBoxLayout()
         _vbox_cdd_cb_0.addWidget(_wgt_h_cdd_cb_0)
@@ -340,17 +360,45 @@ class Clut_detail_dialog(QDialog):
         _vbox_cdd_cb_0.addWidget(self.clut_table)
 
         _wgt = QWidget()
+        _wgt.setObjectName("box")
         _wgt.setLayout(_vbox_cdd_cb_0)
-        return _wgt
+        return _wgt        
+
+    def update_table(self, dList):
+        rowSize = len(dList[0])
+        self.clut_table.itemChanged.disconnect()
+        self.clut_table.clear()
+        self.clut_table.setRowCount(0)
+        self.clut_table.setRowCount(rowSize)
+        self.clut_table.setHorizontalHeaderLabels(["R", "G", "B"])
+        self.clut_table.setVerticalHeaderLabels([str(i) for i in dList[0]])
+        for col in range(0, 3):
+            for row in range(rowSize):
+                item = QTableWidgetItem(str(dList[col+1][row]))
+                self.clut_table.setItem(row, col, item)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.clut_table.itemChanged.connect(self.on_table_change)
+    
+    def on_table_change(self, item):
+        self.controller.change_base_data(item.column(), item.row(), item.text())
     def on_Load_csv(self):
         file_csv = QFileDialog.getOpenFileName(self, self.tr("Load the CSV"), "./", self.tr("Data Files (*.csv)"))
-        self.controller.load_file(file_csv)
-
+        self.controller.load_file(file_csv[0])
+    def on_default_csv(self):
+        self.controller.reset_data()
     def on_change_sldr_bit(self, value):
-        self.controller.bit_change(value)
+        if value == 0:
+            self.controller.bit_change(10)
+        else:
+            self.controller.bit_change(12)
+    def on_save_csv(self):
+        file_csv =  QFileDialog.getSaveFileName(self, self.tr("Save Data files"), "./", self.tr("Data Files (*.csv)"))
+        self.controller.make_csv_file(file_csv[0])
 
     def cdd_gc_box(self):
         _lbl_cdd_gc_title = QLabel("Gamma(γ) Correction")
+        _lbl_cdd_gc_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        _lbl_cdd_gc_title.setObjectName("titleH2")
         self.dsb_cdd_gc = QDoubleSpinBox()
         self.dsb_cdd_gc.setRange(0.1, 10.0)
         self.dsb_cdd_gc.setSingleStep(0.1)
@@ -371,6 +419,7 @@ class Clut_detail_dialog(QDialog):
         _vbox_cdd_gc_0.addWidget(self.g_plot_box())
 
         _wgt = QWidget()
+        _wgt.setObjectName("box")
         _wgt.setLayout(_vbox_cdd_gc_0)
         return _wgt
 
@@ -404,9 +453,14 @@ class Clut_result_dialog(QDialog):
         _hbox.addWidget(self.crd_lbl_box(), 1)
 
         self.setLayout(_hbox)
+        self.setWindowTitle("CLUT Result")
+        self.setWindowIcon(QIcon(":/icon/logo.ico"))
+
 
     def crd_clut_box(self):
         _lbl_crd_title = QLabel("CLUT Result")
+        _lbl_crd_title.setObjectName("titleBox")
+        _lbl_crd_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_file_root = QLabel("\\")
         _btn_set_file_root = QPushButton()
         _btn_set_file_root.setIcon(QIcon.fromTheme(QIcon.ThemeIcon.FolderOpen))
@@ -432,11 +486,13 @@ class Clut_result_dialog(QDialog):
         _vbox_crd_0.addWidget(self.crd_plot)
 
         _wgt = QWidget()
+        _wgt.setObjectName("box")
         _wgt.setLayout(_vbox_crd_0)
         return _wgt
 
     def crd_lbl_box(self):
         _lbl_gamma_title = QLabel("Gamma : ")
+        _lbl_gamma_title.setObjectName("fixed")
         self.lbl_gamma_value = QLabel("1.0")
         _hbox_crd_lbl_0 = QHBoxLayout()
         _hbox_crd_lbl_0.addWidget(_lbl_gamma_title)
@@ -444,25 +500,108 @@ class Clut_result_dialog(QDialog):
         _wgt_h_crd_l_0 = QWidget()
         _wgt_h_crd_l_0.setLayout(_hbox_crd_lbl_0)
 
+        _lbl_cell_type = QLabel("Cell Type : ")
+        _lbl_cell_type.setObjectName("fixed")
+        self.cb_cell_type_value = QComboBox()
+        self.cb_cell_type_value.addItem("TN")
+        self.cb_cell_type_value.addItem("VAN")
+        self.cb_cell_type_value.setCurrentIndex(0)
+        self.cb_cell_type_value.currentIndexChanged.connect(self.on_change_cell_type)
+        _hbox_crd_lbl_1 = QHBoxLayout()
+        _hbox_crd_lbl_1.addWidget(_lbl_cell_type)
+        _hbox_crd_lbl_1.addWidget(self.cb_cell_type_value)
+        _wgt_h_crd_l_1 = QWidget()
+        _wgt_h_crd_l_1.setLayout(_hbox_crd_lbl_1)
+
+        _lbl_cell_gap = QLabel("Cell Gap : ")
+        _lbl_cell_gap.setObjectName("fixed")
+        self.dsb_cell_gap = QDoubleSpinBox()
+        self.dsb_cell_gap.setValue(1.05)
+        self.dsb_cell_gap.setSingleStep(0.1)
+        self.dsb_cell_gap.valueChanged.connect(self.on_change_cell_gap)
+        _hbox_crd_lbl_2 = QHBoxLayout()
+        _hbox_crd_lbl_2.addWidget(_lbl_cell_gap)
+        _hbox_crd_lbl_2.addWidget(self.dsb_cell_gap)
+        _wgt_h_crd_l_2 = QWidget()
+        _wgt_h_crd_l_2.setLayout(_hbox_crd_lbl_2)
+
+        _lbl_bit = QLabel("Bit : ")
+        _lbl_bit.setObjectName("fixed")
+        self.bit_value = QLabel("10 bit")
+        _hbox_crd_lbl_3 = QHBoxLayout()
+        _hbox_crd_lbl_3.addWidget(_lbl_bit)
+        _hbox_crd_lbl_3.addWidget(self.bit_value)
+        _wgt_h_crd_l_3 = QWidget()
+        _wgt_h_crd_l_3.setObjectName("case")
+        _wgt_h_crd_l_3.setLayout(_hbox_crd_lbl_3)
+
         _btn_save_file = QPushButton("SAVE")
         _btn_save_file.clicked.connect(self.on_save_file)
         _vbox_crd_lbl_0 = QVBoxLayout()
-        _vbox_crd_lbl_0.addWidget(_wgt_h_crd_l_0, 1)
-        _vbox_crd_lbl_0.addWidget(_btn_save_file, 2)
+        _vbox_crd_lbl_0.addSpacing(1)
+        _vbox_crd_lbl_0.addWidget(_wgt_h_crd_l_0)
+        _vbox_crd_lbl_0.addWidget(_wgt_h_crd_l_1)
+        _vbox_crd_lbl_0.addWidget(_wgt_h_crd_l_2)
+        _vbox_crd_lbl_0.addWidget(_wgt_h_crd_l_3)
+        _vbox_crd_lbl_0.addWidget(self.crd_lbl_table(), 5)
+        _vbox_crd_lbl_0.addWidget(_btn_save_file, 1)
 
         _wgt = QWidget()
+        _wgt.setObjectName("box")
         _wgt.setLayout(_vbox_crd_lbl_0)
         return _wgt
+
+    def crd_lbl_table(self):
+        self.bin_table = QTableWidget()
+        self.bin_table.setRowCount(256)
+        self.bin_table.setColumnCount(3)
+        self.bin_table.setAlternatingRowColors(True)
+        self.bin_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.bin_table.setHorizontalHeaderLabels(["R", "G", "B"])
+        self.bin_table.setVerticalHeaderLabels([str(i) for i in range(0, 256)])
+        for col in range(3):
+            for row in range(256):
+                item = QTableWidgetItem(str(0))
+                self.bin_table.setItem(row, col, item)
+        # self.clut_table.itemChanged.connect(self.on_table_change)
+        
+        return self.bin_table
+
+    def update_gamma(self, gamma_value):
+        self.lbl_gamma_value.setText(str(round(gamma_value, 2)))
+
     def on_select_root(self):
         file_root = QFileDialog.getExistingDirectory(self, self.tr("Select the Folder"), "./", QFileDialog.Option.ShowDirsOnly)
         self.controller.set_file_root(file_root)
 
     def on_save_file(self):
         self.controller.make_bin_file()
+    
+    def on_change_cell_type(self, index):
+        cType = "TN"
+        if index == 1:
+            cType = "VAN"
+        self.controller.set_cell_type(cType)
 
+    def on_change_cell_gap(self, cGap):
+        self.controller.set_cell_gap(cGap)
+    
+    def update_bin_table(self, data):
+        self.bin_table.clear()
+        self.bin_table.setRowCount(0)
+        self.bin_table.setRowCount(256)
+        self.bin_table.setHorizontalHeaderLabels(["R", "G", "B"])
+        self.bin_table.setVerticalHeaderLabels([str(i) for i in range(0, 256)])
+        for col in range(0, 3):
+            for row in range(256):
+                item = QTableWidgetItem(str(data[col][row]))
+                self.bin_table.setItem(row, col, item)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.bin_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
 class MpiCanvas(FigureCanvasQTAgg):
-  def __init__(self, parent=None, figsize =(5,5), dpi=100):
-        self.fig = Figure(figsize=(5,4), dpi = dpi)
+  def __init__(self, parent=None, figsize =(6,6), dpi=100):
+        self.fig = Figure(figsize=(4,4), dpi = dpi)
         self.axes = self.fig.add_subplot(111)
         super(MpiCanvas, self).__init__(self.fig)
 

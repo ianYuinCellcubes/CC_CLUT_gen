@@ -27,6 +27,10 @@ Here is the link of PJT memo : https://docs.google.com/presentation/d/1l6uX0eqAQ
     uv run main.py
  ```
 
+ # User Guide
+   [User Guide](https://docs.google.com/document/d/1oxsQ9YaeLJZiKPZF5-7SX2S9k1l9feujobXLEYIP3IQ/edit?usp=sharing)
+
+
 # Log
 - 2025-04-17 : Start Project
 - 2025-07-17 : re_Create repo
@@ -35,4 +39,18 @@ Here is the link of PJT memo : https://docs.google.com/presentation/d/1l6uX0eqAQ
 		- create - Display Tab
 - 2025-07-19 : Fix Error
 	- Coding - Create GUI & Add Func
-		- Fixed - func. make bin file => Done
+		- Fixed -~~ func. make bin file~~
+- 2025-07-20 : 
+	- Coding - Fix the GUI Error
+		- Add - print Dialog result label
+		- Fix - data table
+		- create - table interrection, save data action
+- 2025-07-21 : GUI Update
+	- Coding - Update Result Dialog
+		- Add - ~~func.save csv file~~
+		- Update - ~~result dialog~~
+	- Coding - Set StyleSheet QSS
+		- Create - themes.qss
+		- Add - Fonts : Sansation-Regular, Sansation-Bold
+		- Set - QStylesheet, icon, rcc
+	- Document : [User Guide](https://docs.google.com/document/d/1oxsQ9YaeLJZiKPZF5-7SX2S9k1l9feujobXLEYIP3IQ/edit?usp=sharing)
