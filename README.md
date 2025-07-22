@@ -39,7 +39,7 @@ Here is the link of PJT memo : https://docs.google.com/presentation/d/1l6uX0eqAQ
 		- create - Display Tab
 - 2025-07-19 : Fix Error
 	- Coding - Create GUI & Add Func
-		- Fixed -~~ func. make bin file~~
+		- Fixed -~~func. make bin file~~
 - 2025-07-20 : 
 	- Coding - Fix the GUI Error
 		- Add - print Dialog result label
