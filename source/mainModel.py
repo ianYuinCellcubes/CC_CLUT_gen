@@ -31,7 +31,7 @@ class DataModel:
         gray_lv = 0
         isStreaming = False
         step = 0
-        time = 250
+        msec_time = 250
         sub_width = 1920
         sub_height = 1080
     
@@ -51,6 +51,23 @@ class DataModel:
     def get_display_resolution(self):
         return [self.Display.sub_width, self.Display.sub_height]
 
+    def set_display_stream_mode(self):
+        if self.Display.isStreaming:
+            self.Display.isStreaming = False
+        else:
+            self.Display.isStreaming = True
+    def get_display_stream_mode(self):
+        return self.Display.isStreaming
+
+    def set_display_stream_time(self, msec):
+        self.Display.msec_time = msec
+    def get_display_stream_time(self):
+        return self.Display.msec_time
+
+    def set_display_step(self, value):
+        self.Display.step = value
+    def get_display_step(self):
+        return self.Display.step
 
     class CLUT:
         base_table = []

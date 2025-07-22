@@ -88,7 +88,7 @@ class Tab_Dispaly(QWidget):
 
     def dPreview_box(self):
         _lbl_display_preview = QLabel("Display Preview")
-        _lbl_display_preview.setObjectName("tilte")
+        _lbl_display_preview.setObjectName("titleH1")
         self.cb_display = QComboBox()
         self.cb_display.activated[int].connect(self.on_cb_display_activated)
 
@@ -101,12 +101,16 @@ class Tab_Dispaly(QWidget):
 
         self.lbl_preview_display = QLabel("")
         _btn_p_red = QPushButton("Red")
+        _btn_p_red.setObjectName("red")
         _btn_p_red.clicked.connect(self.on_btn_p_color)
         _btn_p_green = QPushButton("Green")
+        _btn_p_green.setObjectName("green")
         _btn_p_green.clicked.connect(self.on_btn_p_color)
         _btn_p_blue = QPushButton("Blue")
+        _btn_p_blue.setObjectName("blue")
         _btn_p_blue.clicked.connect(self.on_btn_p_color)
         _btn_p_white = QPushButton("White")
+        _btn_p_white.setObjectName("white")
         _btn_p_white.clicked.connect(self.on_btn_p_color)
 
         _gbox_dp_0 = QGridLayout()
@@ -156,6 +160,10 @@ class Tab_Dispaly(QWidget):
         self.sldr_gray_lv.setValue(_value)
         self.controller.set_display_gray_lv(_value)
 
+    def update_glv(self, value):
+        self.sldr_gray_lv.setValue(value)
+        self.spb_gray_lv.setValue(value)
+
     def update_monitor_detect_view(self, monitor_list):
         self.cb_display.clear()
         print(monitor_list)
@@ -188,6 +196,7 @@ class Tab_Dispaly(QWidget):
     def rgb_streaming_box(self):
         _lbl_title_streaming = QLabel("RGBW Streaming")
         _btn_streaming = QPushButton("Play")
+        _btn_streaming.clicked.connect(self.on_btn_streaming)
         _hbox_rs_0 = QHBoxLayout()
         _hbox_rs_0.addWidget(_lbl_title_streaming)
         _hbox_rs_0.addWidget(_btn_streaming)
@@ -248,17 +257,25 @@ class Tab_Dispaly(QWidget):
         _wgt.setLayout(_vbox_rs)
         return _wgt
 
+    def on_btn_streaming(self):
+        self.controller.on_streaming()
+
     def on_change_sldr_step(self, value):
         self.spb_steps.setValue(value)
+        self.controller.set_display_step(value)
     def on_change_spb_step(self):
         _value = self.spb_steps.value()
         self.sldr_steps.setValue(_value)
+        self.controller.set_display_step(_value)
+
     
     def on_change_sldr_time(self, value):
         self.spb_time.setValue(value)
+        self.controller.update_stream_timer(value)
     def on_change_spb_time(self):
         _value = self.spb_time.value()
         self.sldr_time.setValue(_value)
+        self.controller.update_stream_timer(_value)
 
 
 class Tab_CLUT(QWidget):
