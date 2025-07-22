@@ -60,3 +60,14 @@ Here is the link of PJT memo : https://docs.google.com/presentation/d/1l6uX0eqAQ
 			- Detect Display
 			- Feature Streaming
 			- project the pattern
+ - 2025-07-23 : Start the Pattern Tab
+	- Coding : Func. Pattern Tab
+		- Add - Pattern Tab : Projection the test Pattern (like CheckerBoard, Stripes)
+			- Func. make pattern
+			- Feature Pattern mode
+				- Stripes(x / y)
+				- checker
+				- sine
+				- line(x / y)
+				- rect
+				- Test Img
