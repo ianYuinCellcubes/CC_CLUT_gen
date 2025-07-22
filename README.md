@@ -54,3 +54,9 @@ Here is the link of PJT memo : https://docs.google.com/presentation/d/1l6uX0eqAQ
 		- Add - Fonts : Sansation-Regular, Sansation-Bold
 		- Set - QStylesheet, icon, rcc
 	- Document : [User Guide](https://docs.google.com/document/d/1oxsQ9YaeLJZiKPZF5-7SX2S9k1l9feujobXLEYIP3IQ/edit?usp=sharing)
+- 2025-07-22 : Start the Display Tab 
+	- Coding - Func. subView 
+		- Add - SubView : Projection the pattern or Gray Screen in Device
+			- Detect Display
+			- Feature Streaming
+			- project the pattern

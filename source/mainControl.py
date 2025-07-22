@@ -5,7 +5,7 @@ from turtle import pos
 from source.mainModel import DataModel
 from source.mainView import MainView, SubScreen
 from source.ScreenReader.ScreenReader import monitor
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot, Qt, QRect
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot, Qt, QRect, QTimer
 from PySide6.QtGui import QPainter, QPixmap, QColor
 import datetime
 import time
@@ -20,6 +20,7 @@ class MainController():
         self.model = DataModel()
         self.view = MainView(self)
         self.sub_view = SubScreen()
+        self.timer = None
         self.init()
 
     def show_main_view(self):
@@ -87,7 +88,6 @@ class MainController():
         csvReader = csv.reader(f, delimiter=',')
         for row in csvReader:
             myData.append(row)
-        # print(myData)
         self.model.set_file_data(myData)
         self.load_data()
         self.data_calculate()
@@ -130,7 +130,6 @@ class MainController():
                 searchVal=base_gamma_data[k]
                 difference_array = np.absolute(slmTruncated-searchVal) # form absolute difference array to find min difference
                 index = difference_array.argmin()                       # min difference == searched index 
-                print(index)
                 nIndex=index.item() + minIndex
                 tempList.append(nIndex) # clut index array
                 tN.append(nIndex/clutN) # normalized CLUT data to be plotted    
@@ -176,7 +175,6 @@ class MainController():
         rslt_bit = str(self.model.get_bit())
         rslt_gamma = str(self.model.get_gamma()).replace('.','_')
         final_data = self.model.get_rslt_data()
-        print(final_data)
         rslt_data = 1
         for i in range(0, 3):
             for j in range(0, 256):
@@ -189,7 +187,6 @@ class MainController():
         rslt_gap = str(self.model.get_cell_gap()).replace(".", "_")
         rslt_datetime = datetime.datetime.now().strftime('%y%m%d%H%M%S')
         rslt_file_name = rslt_datetime +"_" + rslt_cell + rslt_gap + "_G" + rslt_gamma + "_bit" + rslt_bit + ".bin"
-        print(rslt_data)
         with open(os.path.join(rslt_save_root, rslt_file_name), 'wb') as f:
             f.write(bytes(rslt_data))
 
@@ -284,4 +281,45 @@ class MainController():
 
     def set_display_gray_lv(self, level):
         self.model.set_display_gray_lv(level)
+        self.view.tDV.update_glv(level)
         self.update_display()
+
+    def on_streaming(self):
+        self.model.set_display_stream_mode()
+        state = self.model.get_display_stream_mode()
+        if state:
+            self.start_timer()
+        else:
+            self.stop_timer()
+
+    def stop_timer(self):
+        if self.timer != None:
+            self.timer.stop()
+
+    def start_timer(self):
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.Active_Stream)
+        wait_time = self.model.get_display_stream_time()
+        self.timer.start(wait_time)
+    
+    def update_stream_timer(self, msec):
+        self.model.set_display_stream_time(msec)
+        if self.model.get_display_stream_mode():
+            self.start_timer()
+        else:
+            pass
+
+    def Active_Stream(self):
+        glv = self.model.get_display_gray_lvl()
+        step = self.model.get_display_step()
+        next_glv = glv + step
+        if next_glv > 255:
+            next_glv = 0
+        elif next_glv < 0:
+            next_glv = 255
+        else:
+            pass
+        self.set_display_gray_lv(next_glv)
+
+    def set_display_step(self, value):
+        self.model.set_display_step(value)

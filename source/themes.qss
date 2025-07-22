@@ -20,6 +20,19 @@ QLabel#fixed {
     font-weight: 500;
 }
 
+QSpinBox {
+  font-size: 20px;
+  padding: 4px;
+}
+
+QComboBox {
+  border-width: 5px;
+  border-style: solid;
+  border-color:  #0489BE;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
 QPushButton {
   background-color: #0489BE;
   icon-size: 25px;
@@ -28,7 +41,6 @@ QPushButton {
   border: 5px;
   padding: 8px;
 }
-
 
 QPushButton:hover {
   background-color:rgb(13, 95, 167);
@@ -43,6 +55,135 @@ QPushButton:hover {
 
 QPushButton:pressed {
   background-color: #033B6B;
+  color : rgb(227, 227, 227);
+  font-weight: 600;
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+QPushButton#red {
+  background-color:rgb(190, 4, 4);
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+
+QPushButton:hover#red {
+  background-color:rgb(167, 13, 13);
+  color : rgb(227, 227, 227);
+  font-weight: 600;
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+QPushButton:pressed#red {
+  background-color:rgb(107, 3, 3);
+  color : rgb(227, 227, 227);
+  font-weight: 600;
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+
+QPushButton#green {
+  background-color:rgb(4, 190, 44);
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+
+QPushButton:hover#green {
+  background-color:rgb(26, 167, 13);
+  color : rgb(227, 227, 227);
+  font-weight: 600;
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+QPushButton:pressed#green {
+  background-color:rgb(3, 107, 3);
+  color : rgb(227, 227, 227);
+  font-weight: 600;
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+QPushButton#white {
+  background-color:rgb(185, 187, 186);
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+
+QPushButton:hover#white {
+  background-color:rgb(167, 167, 166);
+  color : rgb(227, 227, 227);
+  font-weight: 600;
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+QPushButton:pressed#white {
+  background-color:rgb(97, 98, 97);
+  color : rgb(227, 227, 227);
+  font-weight: 600;
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+QPushButton#blue {
+  background-color:rgb(3, 27, 183);
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+
+QPushButton:hover#blue {
+  background-color:rgb(0, 52, 173);
+  color : rgb(227, 227, 227);
+  font-weight: 600;
+  icon-size: 25px;
+  font-size : 25px;
+  border-radius: 4px;
+  border: 5px;
+  padding: 8px;
+}
+
+QPushButton:pressed#blue {
+  background-color:rgb(1, 14, 100);
   color : rgb(227, 227, 227);
   font-weight: 600;
   icon-size: 25px;
