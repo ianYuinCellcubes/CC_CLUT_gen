@@ -1,6 +1,57 @@
 
 import numpy as np
 class DataModel:
+    def __init__(self):
+        self.__data = 0
+        self.__port_list = []
+        self.__root_folder = './'
+
+    class monitor:
+        mIndex: int = 0     #  monitor select
+        mCount: int = 1     #  How many moniter detect
+        mlist: list = []    #  monitor list(data)
+
+    def set_monitor_list(self, monitor_list):
+        self.monitor.mlist = monitor_list
+    def get_monitor_list(self):
+        return self.monitor.mlist
+    
+    def set_monitor_count(self, monitor_count):
+        self.monitor.mCount = monitor_count
+    def get_monitor_count(self):
+        return self.monitor.mCount
+    
+    def set_monitor_index(self, monitor_index):
+        self.monitor.mIndex = monitor_index
+    def get_monitor_index(self):
+        return self.monitor.mIndex
+
+    class Display:
+        color_mode = 0
+        gray_lv = 0
+        isStreaming = False
+        step = 0
+        time = 250
+        sub_width = 1920
+        sub_height = 1080
+    
+    def set_display_color_mode(self, mode):
+        self.Display.color_mode = mode
+    def get_display_color_mode(self):
+        return self.Display.color_mode
+
+    def set_display_gray_lv(self, level):
+        self.Display.gray_lv = level
+    def get_display_gray_lvl(self):
+        return self.Display.gray_lv
+    
+    def set_display_resolution(self, width, height):
+        self.Display.sub_width = width
+        self.Display.sub_height = height
+    def get_display_resolution(self):
+        return [self.Display.sub_width, self.Display.sub_height]
+
+
     class CLUT:
         base_table = []
         gamma_value = 1.0
@@ -17,10 +68,6 @@ class DataModel:
         cell_gap = 1.05
         def __init__(self) -> None:
             pass
-    def __init__(self):
-        self.__data = 0
-        self.__port_list = []
-        self.__root_folder = './'
 
     def get_cell_gap(self):
         return self.CLUT.cell_gap

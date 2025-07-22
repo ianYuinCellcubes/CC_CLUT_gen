@@ -1,3 +1,4 @@
+from operator import index
 from PySide6.QtCore import QEvent, Qt, QSize
 from PySide6.QtGui import QIcon, QCloseEvent, QKeyEvent
 from PySide6.QtWidgets import (
@@ -48,14 +49,13 @@ class MainView(QMainWindow):
         self.tDV = Tab_Dispaly(self.controller)
         self.tCV = Tab_CLUT(self.controller)
 
-        wgt_tab = QTabWidget()
-        wgt_tab.addTab(self.tCV, "CLUT")
-        wgt_tab.addTab(self.tDV, "Display")
-        
+        self.wgt_tab = QTabWidget()
+        self.wgt_tab.addTab(self.tCV, "CLUT")
+        self.wgt_tab.addTab(self.tDV, "Display")
+        self.wgt_tab.currentChanged.connect(self.on_tab_change)
         
         vbox = QVBoxLayout()
-        vbox.addWidget(wgt_tab)
-        # vbox.addWidget(self.mV)
+        vbox.addWidget(self.wgt_tab)
 
         widget = QWidget()
         widget.setLayout(vbox)
@@ -67,8 +67,12 @@ class MainView(QMainWindow):
             self.tCV.dialog.close()
         if self.tCV.rslt is not None:
             self.tCV.rslt.close()
+        self.controller.closeWindow()
         return super().closeEvent(event)
 
+    def on_tab_change(self, index):
+        if index == 1:
+            self.controller.initSubView()
 
 class Tab_Dispaly(QWidget):
     def __init__(self, controller):
@@ -86,6 +90,7 @@ class Tab_Dispaly(QWidget):
         _lbl_display_preview = QLabel("Display Preview")
         _lbl_display_preview.setObjectName("tilte")
         self.cb_display = QComboBox()
+        self.cb_display.activated[int].connect(self.on_cb_display_activated)
 
         _hbox_dP_0 = QHBoxLayout()
         _hbox_dP_0.addWidget(_lbl_display_preview)
@@ -94,14 +99,18 @@ class Tab_Dispaly(QWidget):
         _wgt_h_dp_0 = QWidget()
         _wgt_h_dp_0.setLayout(_hbox_dP_0)
 
-        self.lbl_preview_display = QLabel("Screen")
+        self.lbl_preview_display = QLabel("")
         _btn_p_red = QPushButton("Red")
+        _btn_p_red.clicked.connect(self.on_btn_p_color)
         _btn_p_green = QPushButton("Green")
+        _btn_p_green.clicked.connect(self.on_btn_p_color)
         _btn_p_blue = QPushButton("Blue")
+        _btn_p_blue.clicked.connect(self.on_btn_p_color)
         _btn_p_white = QPushButton("White")
+        _btn_p_white.clicked.connect(self.on_btn_p_color)
 
         _gbox_dp_0 = QGridLayout()
-        _gbox_dp_0.addWidget(self.lbl_preview_display, 0, 0, 3, -1)
+        _gbox_dp_0.addWidget(self.lbl_preview_display, 0, 0, 4, 3)
         _gbox_dp_0.addWidget(_btn_p_red, 0, 3)
         _gbox_dp_0.addWidget(_btn_p_green, 1, 3)
         _gbox_dp_0.addWidget(_btn_p_blue, 2, 3)
@@ -140,9 +149,41 @@ class Tab_Dispaly(QWidget):
 
     def on_change_sldr_glv(self, value):
         self.spb_gray_lv.setValue(value)
+        self.controller.set_display_gray_lv(value)
+    
     def on_change_spb_glv(self):
         _value = self.spb_gray_lv.value()
         self.sldr_gray_lv.setValue(_value)
+        self.controller.set_display_gray_lv(_value)
+
+    def update_monitor_detect_view(self, monitor_list):
+        self.cb_display.clear()
+        print(monitor_list)
+        for i in range(len(monitor_list)):
+            self.cb_display.addItem(monitor_list[i][1].lstrip("\\\\.\\"), userData=i)
+
+    def on_cb_display_activated(self, index):
+        self.controller.set_monitor_index(index)
+    
+    def on_btn_p_color(self):
+        color = self.sender().text()
+        if color == "Red":
+            p_mode = 1
+        elif color == "Green":
+            p_mode = 2
+        elif color == "Blue":
+            p_mode = 3
+        elif color == "White":
+            p_mode = 0
+        else:
+            pass
+        self.controller.set_display_color_mode(p_mode)
+
+    def update_display_preview(self, color, gray_lv):
+        self.lbl_preview_display.setText("Level : {}".format(gray_lv))
+        self.lbl_preview_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_preview_display.setStyleSheet("font-weight:600; color: #F0DE4F; background-color: {}; border-radius:10px;".format(color))
+
 
     def rgb_streaming_box(self):
         _lbl_title_streaming = QLabel("RGBW Streaming")
@@ -605,3 +646,29 @@ class MpiCanvas(FigureCanvasQTAgg):
         self.axes = self.fig.add_subplot(111)
         super(MpiCanvas, self).__init__(self.fig)
 
+class SubScreen(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle("View")
+
+        self.lbl_pixmap = QLabel("test")
+
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.lbl_pixmap)
+        hbox.setContentsMargins(0, 0, 0, 0)
+
+        widget = QWidget()
+        widget.setLayout(hbox)
+        self.setCentralWidget(widget)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setGeometry(0,0, 1920,1080)
+        self.setWindowFlag(Qt.FramelessWindowHint, True)
+    
+    def update_monitor(self, data):
+        self.move(data[3][0], data[3][1])
+
+    def update_pixmap(self, pixmap):
+        self.lbl_pixmap.setPixmap(pixmap)

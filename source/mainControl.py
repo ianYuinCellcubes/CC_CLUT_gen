@@ -3,8 +3,10 @@
 from asyncio.windows_events import NULL
 from turtle import pos
 from source.mainModel import DataModel
-from source.mainView import MainView
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot
+from source.mainView import MainView, SubScreen
+from source.ScreenReader.ScreenReader import monitor
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot, Qt, QRect
+from PySide6.QtGui import QPainter, QPixmap, QColor
 import datetime
 import time
 from scipy.interpolate import CubicSpline
@@ -17,10 +19,14 @@ class MainController():
     def __init__(self):
         self.model = DataModel()
         self.view = MainView(self)
+        self.sub_view = SubScreen()
         self.init()
 
     def show_main_view(self):
         self.view.show()
+
+    def show_sub_view(self):
+        self.sub_view.show()
 
     def init(self):
         self.load_data()
@@ -204,3 +210,78 @@ class MainController():
     
     def set_cell_gap(self, cGap):
         self.model.set_cell_gap(cGap)
+
+# Display Tab Func.
+    def closeWindow(self):
+        self.sub_view.close()
+
+    def initSubView(self):
+        self.search_monitor()
+        self.update_display()
+        self.show_sub_view()
+
+    def search_monitor(self):
+        screen_reader = monitor
+        self.model.set_monitor_list(screen_reader.scanning(screen_reader))
+        self.model.set_monitor_count(screen_reader.countMonitor())
+        self.view.tDV.update_monitor_detect_view(self.model.get_monitor_list())
+
+    def set_monitor_index(self, index):
+        self.model.set_monitor_index(index)
+        self.sub_view.update_monitor(self.model.get_monitor_list()[index])
+
+    def set_display_color_mode(self, mode):
+        self.model.set_display_color_mode(mode)
+        self.update_display()
+
+    def update_display(self):
+        self.update_display_preview()
+        pixmap = self.make_display_color()
+        self.update_display_pattern(pixmap)
+    
+    def make_display_color(self):
+        color_mode = self.model.get_display_color_mode()
+        resolution = self.model.get_display_resolution()
+        pixmap = QPixmap(resolution[0], resolution[1])
+        painter = QPainter(pixmap)
+        gray_lv = self.model.get_display_gray_lvl()
+        if color_mode == 0:
+            color = self.rgb_to_hex(gray_lv, gray_lv, gray_lv)
+        elif color_mode == 1:
+            color = self.rgb_to_hex(gray_lv, 0, 0)
+        elif color_mode == 2:
+            color = self.rgb_to_hex(0, gray_lv, 0)
+        elif color_mode == 3:
+            color = self.rgb_to_hex(0,0, gray_lv)
+        else:
+            color = self.rgb_to_hex(gray_lv, gray_lv, gray_lv)
+        rect = QRect(0, 0, resolution[0], resolution[1])
+        painter.fillRect(rect, QColor(color))
+        painter.end()
+        return pixmap
+
+    def update_display_pattern(self, pixmap):
+        self.sub_view.update_pixmap(pixmap)
+
+    def update_display_preview(self):
+        color_mode = self.model.get_display_color_mode()
+        gray_lv = self.model.get_display_gray_lvl()
+        if color_mode == 0:
+            color = self.rgb_to_hex(gray_lv, gray_lv, gray_lv)
+        elif color_mode == 1:
+            color = self.rgb_to_hex(gray_lv, 0, 0)
+        elif color_mode == 2:
+            color = self.rgb_to_hex(0, gray_lv, 0)
+        elif color_mode == 3:
+            color = self.rgb_to_hex(0,0, gray_lv)
+        else:
+            color = self.rgb_to_hex(gray_lv, gray_lv, gray_lv)
+        self.view.tDV.update_display_preview(color, gray_lv)
+
+    def rgb_to_hex(self, r, g, b):
+        rslt = '#' + hex(r)[2:].zfill(2) + hex(g)[2:].zfill(2) + hex(b)[2:].zfill(2)
+        return rslt
+
+    def set_display_gray_lv(self, level):
+        self.model.set_display_gray_lv(level)
+        self.update_display()
